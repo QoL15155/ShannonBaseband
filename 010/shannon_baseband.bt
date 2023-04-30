@@ -3,12 +3,7 @@
 //
 //      File: Shannon Baseband Firmware
 //   Authors: QoL
-//   Version: 
-//   Purpose: 
-//  Category: 
-// File Mask: 
-//  ID Bytes: 
-//   History: 
+//   Version: 1
 //------------------------------------------------
 
 // Colors
@@ -29,11 +24,8 @@ typedef struct {
 } t_entry;
 
 /**** Const Variables ***/
-local int toc_size = 0;
 local int boot_addr = 0;  // Address of boot section
-local int boot_size = 0;
 local int main_addr = 0;  // Address of main section
-local int main_size = 0;
 
 int ParseHeaders()
 {
@@ -43,7 +35,6 @@ int ParseHeaders()
 		Warning( "File is not a modem.bin. No TOC. Template stopped." );
 		return -1;
 	}
-	toc_size = e_toc.size;
 	local string tmp_name;
 	while (ReadByte())
 	{
@@ -53,7 +44,6 @@ int ParseHeaders()
 			SetColor(cLtGreen, cLtPurple);	
 			t_entry e_boot					<comment="baseband bootstrap code">;			
 			boot_addr = e_boot.offset;
-			boot_size = e_boot.size;
 			SetColor(cNone, cDkPurple);
 			continue;
 		}
@@ -62,7 +52,6 @@ int ParseHeaders()
 			SetForeColor(cLtYellow);		
 			t_entry e_main 					<comment="baseband code">;	
 			main_addr = e_main.offset;
-			main_size = e_main.size;			
 			SetColor(cNone, cDkPurple);
 			continue;
 		}
@@ -82,9 +71,8 @@ int ParseHeaders()
 
 /**** PARSING CODE ****/
 LittleEndian();
-Printf("baseband.bt Begin\n");
+Printf("Shannon Baseband - Begin parsing\n");
 
-// t_header header;
 if (ParseHeaders() == -1) {
 	return -1;
 }
