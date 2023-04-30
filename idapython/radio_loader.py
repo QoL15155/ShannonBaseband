@@ -13,33 +13,12 @@ import struct
 import ida_kernwin
 import logging
 import modem_utils as utils
+import modem_debug_msg as modem_dbg
 import vector_table
 
 logger = utils.configLogger("Modem_Loader", logging.DEBUG)
 
 STRUCT_TOC_ENTRY = "st_radio_entry"
-
-# Variables
-DEBUG = True
-
-# 
-# Auxiliary functions 
-#
-
-def get_string(ea):
-	b = ida_bytes.get_strlit_contents(ea, -1, idc.STRTYPE_C)
-	return b.decode() if b else None
-
-# TODO: see if this actually needed
-def list_segments():
-	print("Listing Segments")
-	for s in idautils.Segments():
-		start = idc.get_segm_start(s)
-		end = idc.get_segm_end(s)
-		name = idc.get_segm_name(s)
-		data = ida_bytes.get_bytes(start, end-start)
-		print(f"[{name}] Start:{start}, End:{end}")
-
 
 # 
 # Starts of Code
@@ -153,15 +132,7 @@ def apply_segments(fd, radio_entries):
 
 def create_toc_entry_struct():	
 	""" Create toc entry struct in idb """
-	name = STRUCT_TOC_ENTRY
-	sid = ida_struct.get_struc_id(name)
-	if sid != idc.BADADDR:
-		logger.info(f"struct {name} already exists. id: {sid}")
-		idc.del_struc(sid)
-		# return sid
-
-	sid = idc.add_struc(-1, name, 0)
-	# add_struct_to_idb(name)
+	sid = utils.add_structure(STRUCT_TOC_ENTRY)
 	idc.add_struc_member(sid, "name", 0x0, ida_bytes.FF_STRLIT, -1, 12);
 	idc.add_struc_member(sid, "offset", -1, ida_bytes.FF_DWORD, -1, 4);
 	idc.add_struc_member(sid, "load_address", -1, ida_bytes.FF_DWORD, -1, 4);
@@ -172,7 +143,7 @@ def create_toc_entry_struct():
 
 def try_parse_seg_toc_entry(ea, sz, first_entry):
 	""" Tries to parse TOC entry in idb """
-	name = get_string(ea)
+	name = utils.get_string(ea)
 	# Sanity checks
 	if not name: 
 		return False
@@ -249,5 +220,7 @@ def load_file(fd, neflags, format):
 	parse_TOC_segment(dict_radio_entries["TOC"].load_address)
 	vector_table.parse(dict_radio_entries["BOOT"].load_address, "boot")
 	vector_table.parse(dict_radio_entries["MAIN"].load_address, "main")
+	if ida_kernwin.ask_yn(0, 'Add Debug struct?'):
+		modem_dbg.parse()
 
 	return 1

@@ -3,6 +3,8 @@ import idc
 import idaapi
 import logging
 import sys
+import ida_bytes
+import idautils
 
 #
 # Loggers Configuration
@@ -54,3 +56,39 @@ def check_struct_types(name):
 		name = ida_struct.get_member_name(mem.id)
 		print(f"Name: {name}, Flag: {hex(mem.flag)}")
 		
+def add_structure(name):
+	sid = ida_struct.get_struc_id(name)
+	if sid != idc.BADADDR:
+		# logger.info(f"struct {name} already exists. id: {sid}")
+		idc.del_struc(sid)
+
+	sid = idc.add_struc(-1, name, 0)
+	# add_struct_to_idb(name)
+	return sid
+
+# TODO: what is this???
+# def add_struct_to_idb(name):
+	# idc.import_type(-1, name)
+
+# 
+# Pointer Games
+#
+
+def get_string(ea):
+	b = ida_bytes.get_strlit_contents(ea, -1, idc.STRTYPE_C)
+	return b.decode() if b else None
+
+
+# 
+# Misc 
+#
+
+# TODO: see if this actually needed
+def list_segments():
+	print("Listing Segments")
+	for s in idautils.Segments():
+		start = idc.get_segm_start(s)
+		end = idc.get_segm_end(s)
+		name = idc.get_segm_name(s)
+		data = ida_bytes.get_bytes(start, end-start)
+		print(f"[{name}] Start:{start}, End:{end}")
