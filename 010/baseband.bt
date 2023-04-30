@@ -1,0 +1,94 @@
+//------------------------------------------------
+//--- 010 Editor v10.0.2 Binary Template
+//
+//      File: Shannon Baseband Firmware
+//   Authors: QoL
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+// Colors
+// https://www.sweetscape.com/010editor/manual/FuncInterface.htm
+// TODO: remove - unused
+#define GreenClr   0x02f71e
+#define BlueClr    0xffd30a
+#define RedClr     0x5f3dc4
+
+//  if(Strcmp(file_identification, "TOC")) {
+typedef struct {
+    char entry_name[12];
+	uint32 offset		<format=hex>;		
+    uint32 load_address	<format=hex>;
+    uint32 size;
+    uint32 crc;
+    uint32 id;  // Count / Entry ID
+} t_entry;
+
+/**** Const Variables ***/
+local int toc_size = 0;
+local int boot_addr = 0;  // Address of boot section
+local int boot_size = 0;
+local int main_addr = 0;  // Address of main section
+local int main_size = 0;
+
+int ParseHeaders()
+{
+	SetColor(cNone, cDkPurple);
+	t_entry e_toc;
+	if (e_toc.entry_name != "TOC") {
+		Warning( "File is not a modem.bin. No TOC. Template stopped." );
+		return -1;
+	}
+	toc_size = e_toc.size;
+	local string tmp_name;
+	while (ReadByte())
+	{
+		// ReadBytes(tmp_name);
+		tmp_name = ReadString(FTell());
+		if (tmp_name == "BOOT") {
+			SetColor(cLtGreen, cLtPurple);	
+			t_entry e_boot					<comment="baseband bootstrap code">;			
+			boot_addr = e_boot.offset;
+			boot_size = e_boot.size;
+			SetColor(cNone, cDkPurple);
+			continue;
+		}
+		if (tmp_name == "MAIN") {
+			SetColor(cLtYellow, cLtPurple);
+			SetForeColor(cLtYellow);		
+			t_entry e_main 					<comment="baseband code">;	
+			main_addr = e_main.offset;
+			main_size = e_main.size;			
+			SetColor(cNone, cDkPurple);
+			continue;
+		}
+		if (tmp_name == "NV") {
+			t_entry e_nv					<comment="non-volatile memory. likely baseband settings or something">;
+			continue;
+		} 
+		t_entry entry;
+	}
+	if (boot_addr == 0 || main_addr == 0)
+	{
+		Warning( "TOC does not contain necessary baseband entries. Stopping" );
+		return -1;
+	}
+	return 0;
+}
+
+/**** PARSING CODE ****/
+LittleEndian();
+Printf("baseband.bt Begin\n");
+
+// t_header header;
+if (ParseHeaders() == -1) {
+	return -1;
+}
+FSeek(main_addr);
+// SetForeColor(cBlue);
+
+
