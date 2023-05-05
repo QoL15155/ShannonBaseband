@@ -59,16 +59,9 @@ def check_struct_types(name):
 def add_structure(name):
 	sid = ida_struct.get_struc_id(name)
 	if sid != idc.BADADDR:
-		# logger.info(f"struct {name} already exists. id: {sid}")
 		idc.del_struc(sid)
-
 	sid = idc.add_struc(-1, name, 0)
-	# add_struct_to_idb(name)
 	return sid
-
-# TODO: what is this???
-# def add_struct_to_idb(name):
-	# idc.import_type(-1, name)
 
 # 
 # Pointer Games

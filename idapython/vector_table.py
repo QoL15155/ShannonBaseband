@@ -40,7 +40,7 @@ def parse(ea, segname):
             logger.warning(f"Failed to create instruction at {hex(ea)}")
             continue 
         ptr_func = get_function(ea)
-        if not  ptr_func:
+        if not ptr_func:
             logger.warning(f"Failed to get function pointer at {hex(ea)}")
             continue
         ida_funcs.add_func(ptr_func)

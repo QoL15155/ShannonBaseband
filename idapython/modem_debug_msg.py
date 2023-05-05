@@ -40,8 +40,6 @@ def parse_string_from_ptr(ea):
 	if s != None:
 		idc.create_strlit(ptr, ptr + len(s))
 		# TODO: add xrefs to ea?
-		# ida_name.set_name(ptr, "dbg")
-
 	return s
 
 def define_dbg_structs():
@@ -78,7 +76,6 @@ def define_dbg_structs():
 		ida_lines.add_extra_cmt(ea, True, f"Message: {dbg_msg}")
 		ida_lines.add_extra_cmt(ea, True, f"SourceFile: \"{source_file}\"\t(line {line_num})")
 		ea += 4
-		# name = idc.get_name(ea + 0x10)
 	logger.info(f"Finished. Dbg messages: {count_st}. Fails:{count_failed_st}")
 
 def parse():
