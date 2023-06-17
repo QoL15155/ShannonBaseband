@@ -31,7 +31,7 @@ class RadioEntry(object):
 		self.__load_address = ea + 0x10
 		self.__size = ea + 0x14
 		self.__crc = ea + 0x18
-		self.__id = ea + 0x1c
+		self.__section_id = ea + 0x1c
 		
 	def get_entry_name(fd):
 		try:
@@ -43,7 +43,7 @@ class RadioEntry(object):
 	def __init__(self, fd):
 		self.__name = RadioEntry.get_entry_name(fd)
 		entry_bytes = fd.read(4 * 5)
-		self.__offset, self.__load_address, self.__size, self.__crc, self.__id = struct.unpack("<IIIII", entry_bytes)
+		self.__offset, self.__load_address, self.__size, self.__crc, self.__section_id = struct.unpack("<IIIII", entry_bytes)
 	
 	def __str__(self):
 		return f"[{self.name}] off={hex(self.offset)}, sz={self.size}, load_address={hex(self.load_address)}"
@@ -73,29 +73,29 @@ class RadioEntry(object):
 # Segment Parsing
 #
 
-def try_parse_entry(fd, entries):
+def try_parse_header(fd, entries):
 	""" Tried to add entry into dictionary """
 	entry = RadioEntry(fd)
 	name = entry.name
 	if not name:
 		return False
 	if name in entries:  # Sanity test. Shouldn't happen	
-		logger.error(f"Entry '{name}' is already in entries")
+		logger.error(f"TOC headers contains a duplicate section name: '{name}'")
 		return False
 
 	entries[name] = entry
 	logger.debug(f"{entry}")
 	return True
 
-def try_parse_entries(fd):
-	""" Parses entries into entries dictionary.
-		Assumes the first entry is TOC
+def try_parse_headers(fd):
+	""" Parses headers into entries dictionary.
+		Assumes the first header is TOC entry
 		Returns: True when structure is valid
 	"""
 	radio_entries = {}  # name / values
 	fd.seek(0)
 	while True:
-		if not try_parse_entry(fd, radio_entries):
+		if not try_parse_header(fd, radio_entries):
 			logger.info(f"Finished parsing TOC entries. {len(radio_entries)}")
 			break
 
@@ -209,7 +209,7 @@ def load_file(fd, neflags, format):
 	if (neflags & idaapi.NEF_RELOAD) != 0:
 		return 1
 
-	dict_radio_entries = try_parse_entries(fd)	
+	dict_radio_entries = try_parse_headers(fd)	
 	if not dict_radio_entries:
 		logger.error("Failed to get entries")
 		return 0

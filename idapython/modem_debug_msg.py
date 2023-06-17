@@ -44,7 +44,7 @@ def parse_string_from_ptr(ea):
 
 def define_dbg_structs():
 	HEX_MAGIC = "44 42 54 3a"  # "DBT:"
-	dbg_pattern = ida_bytes.compiled_binpat_vec_t()
+	dbg_pattern = ida_bytes.compiled_binpat_vec_t()  # compiled binary pattern
 	start_ea = ida_ida.inf_get_min_ea()
 	end_ea = ida_ida.inf_get_max_ea()
 	flags = ida_bytes.BIN_SEARCH_FORWARD
